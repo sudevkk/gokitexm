@@ -2,37 +2,36 @@ package main
 
 
 import (
-	"context"
-	"github.com/go-kit/kit/endpoint"
-	"encoding/json"
-	"log"
+	"github.com/go-kit/kit/log"
 	"net/http"
 	httptransport "github.com/go-kit/kit/transport/http"
+	"os"
 )
-
-
-
 
 
 func main() {
 
+	logger := log.NewLogfmtLogger(os.Stderr)
 	svc := stringService{}
+	uppercaseWithLogger := loggerMiddleware(log.With(logger, "method", "uppercase"))
+
 
 	uppercaseHandler := httptransport.NewServer(
-		makeUppercaseEndpoint(svc),
+		uppercaseWithLogger(makeUppercaseEndpoint(svc)),
 		decodeUppercaseRequest,
 		encodeResponse,
 	)
 
+	countWithLogger := loggerMiddleware(log.With(logger, "method", "count"))(makeCountEndpoint(svc))
 	countHandler := httptransport.NewServer(
-		makeCountEndpoint(svc),
+		countWithLogger,
 		decodeCountRequest,
 		encodeResponse,
 	)
 
 	http.Handle("/uppercase", uppercaseHandler)
 	http.Handle("/count", countHandler)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	http.ListenAndServe(":8080", nil)
 }
 
 

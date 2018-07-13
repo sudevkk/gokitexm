@@ -1,5 +1,13 @@
 package main
 
+import (
+	"github.com/go-kit/kit/endpoint"
+	"context"
+	"net/http"
+	"encoding/json"
+)
+
+
 type uppercaseRequest struct {
 	S string `json:"s"`
 }
